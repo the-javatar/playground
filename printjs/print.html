@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Printing from Web</title>
+
+    <style>
+        body {
+            padding: 40px;
+            height: 100px;
+        }
+
+        div p {
+            width: 300px;
+        }
+
+        button {
+            padding: 12px 50px;
+            border: none;
+            background-color: rgb(91, 234, 208);
+            color: #333;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        input {
+            padding: 12px 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button>print pdf</button>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js"
+    integrity="sha256-vIL0pZJsOKSz76KKVCyLxzkOT00vXs+Qz4fYRVMoDhw=" crossorigin="anonymous">
+</script>
+
+<script>
+    var splitRegex = /\r\n|\r|\n/g;
+    jsPDF.API.textEx = function (text, x, y, hAlign, vAlign) {
+        var fontSize = this.internal.getFontSize() / this.internal.scaleFactor;
+
+        var lineHeightProportion = 1.15;
+
+        var splittedText = null;
+        var lineCount = 1;
+        if (vAlign === 'middle' || vAlign === 'bottom' || hAlign === 'center' || hAlign === 'right') {
+            splittedText = typeof text === 'string' ? text.split(splitRegex) : text;
+
+            lineCount = splittedText.length || 1;
+        }
+
+        y += fontSize * (2 - lineHeightProportion);
+
+        if (vAlign === 'middle')
+            y -= (lineCount / 2) * fontSize;
+        else if (vAlign === 'bottom')
+            y -= lineCount * fontSize;
+
+        if (hAlign === 'center' || hAlign === 'right') {
+            var alignSize = fontSize;
+            if (hAlign === 'center')
+                alignSize *= 0.5;
+
+            if (lineCount > 1) {
+                for (var iLine = 0; iLine < splittedText.length; iLine++) {
+                    this.text(splittedText[iLine], x - this.getStringUnitWidth(splittedText[iLine]) * alignSize,
+                        y);
+                    y += fontSize * lineHeightProportion;
+                }
+                return this;
+            }
+            x -= this.getStringUnitWidth(text) * alignSize;
+        }
+
+        this.text(text, x, y);
+        return this;
+    };
+    let button = document.querySelector('button');
+    // select the input
+    let input = document.querySelector('input');
+    button.addEventListener('click', printPDF);
+
+    function printPDF() {
+        pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'cm',
+            format: [10, 10],
+            putOnlyUsedFonts: false
+        });
+        let splitTitle = pdf.splitTextToSize(
+            `26 Jun 2019 06:43 PM\nWelcome to Prime Health\nGaborone Private Hospital\nDR Visit\nYour ticket number is:\n5\nPlease To Queue And Wait Your Turn!\nNo of customers waiting: 0\nhttp://www.mri.co.bw\nCel: 71322361\nTel: 3903066\nFax: 3164728`,
+            7.5);
+        pdf.setFont('Monospace', 'bold');
+        let size = 20;
+        let verticalOffset = 0.5;
+        pdf.setLineWidth(1 / 72);
+        // pdf.text(0.6, verticalOffset + size / 72, splitTitle);
+        pdf.textEx(splitTitle, 0.6, verticalOffset + size / 72, "middle", 'center');
+        // save the file
+        pdf.save();
+        // automatically launch the print window 
+        // pdf.autoPrint();
+        //This is a key for printing
+        // pdf.output('dataurlnewwindow');
+    }
+</script>
+
+
+</html>
